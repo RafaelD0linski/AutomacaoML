@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Abrir Produto Mercado Livre</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <!-- Cabeçalho -->
+        <div class="header">
+          <h1>🔗 Abrir Produto do Mercado Livre</h1>
+          <p class="subtitle">
+            Cole qualquer link de produto e acesse a página oficial
+          </p>
+        </div>
+
+        <!-- Formulário -->
+        <form method="POST" action="/abrir">
+          <div class="form-group">
+            <input
+              type="text"
+              name="link_produto"
+              placeholder="Cole o link do produto aqui..."
+              required
+              autofocus
+            />
+          </div>
+
+          <button type="submit" class="btn-primary">
+            <span>Abrir Produto</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+              ></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Mensagem de erro (se houver) -->
+        {% if erro %}
+        <div class="alert alert-error">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ erro }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Informações adicionais -->
+        <div class="info-box">
+          <h3>📌 Tipos de links aceitos:</h3>
+          <ul>
+            <li>
+              <strong>Links diretos:</strong>
+              produto.mercadolivre.com.br/MLB-xxxxx...
+            </li>
+            <li>
+              <strong>Links curtos:</strong> mercadolivre.com.br/p/MLB123456
+            </li>
+            <li>
+              <strong>Links encurtados:</strong> mercadolivre.com/sec/xxxxx...
+            </li>
+            <li>
+              <strong>Links afiliados:</strong> qualquer link com
+              redirecionamento
+            </li>
+          </ul>
+
+          <div class="tip">
+            💡 <strong>Dica:</strong> O sistema resolve automaticamente qualquer
+            tipo de link e abre a página oficial do produto.
+          </div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="footer">
+          <p>Desenvolvido com Python + FastAPI</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script para limpar mensagem de erro ao digitar -->
+    <script>
+      const input = document.querySelector('input[name="link_produto"]');
+      const alert = document.querySelector(".alert");
+
+      if (input && alert) {
+        input.addEventListener("input", function () {
+          alert.style.display = "none";
+        });
+      }
+    </script>
+  </body>
+</html>

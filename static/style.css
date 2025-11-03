@@ -1,0 +1,323 @@
+/* ============================================
+   RESET E CONFIGURAÇÕES GLOBAIS
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Cores Mercado Livre */
+  --ml-blue: #3483fa;
+  --ml-yellow: #ffba00;
+  --ml-blue-dark: #2968c8;
+  --ml-blue-light: #e6f2ff;
+
+  /* Cores do tema */
+  --bg-color: #f6f6f6;
+  --card-bg: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+  --success-color: #00a650;
+  --error-color: #f23d4f;
+
+  /* Sombras */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+
+  /* Espaçamentos */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--ml-blue-light) 0%,
+    var(--bg-color) 100%
+  );
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+/* ============================================
+   CONTAINER E CARD PRINCIPAL
+   ============================================ */
+.container {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xl);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   CABEÇALHO
+   ============================================ */
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.header h1 {
+  font-size: 2rem;
+  color: var(--ml-blue);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+/* ============================================
+   FORMULÁRIO
+   ============================================ */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+input[type="text"]:focus {
+  border-color: var(--ml-blue);
+  box-shadow: 0 0 0 4px var(--ml-blue-light);
+}
+
+input[type="text"]::placeholder {
+  color: #999;
+}
+
+/* ============================================
+   BOTÃO PRINCIPAL
+   ============================================ */
+.btn-primary {
+  width: 100%;
+  padding: 16px 24px;
+  background: var(--ml-blue);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  font-family: inherit;
+}
+
+.btn-primary:hover {
+  background: var(--ml-blue-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary svg {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   ALERTAS
+   ============================================ */
+.alert {
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert-error {
+  background: #fff0f1;
+  color: var(--error-color);
+  border: 1px solid #ffcdd2;
+}
+
+.alert svg {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   CAIXA DE INFORMAÇÕES
+   ============================================ */
+.info-box {
+  background: var(--ml-blue-light);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  border: 1px solid #cce5ff;
+}
+
+.info-box h3 {
+  font-size: 1.1rem;
+  color: var(--ml-blue-dark);
+  margin-bottom: var(--spacing-sm);
+  font-weight: 600;
+}
+
+.info-box ul {
+  list-style: none;
+  margin-bottom: var(--spacing-sm);
+}
+
+.info-box li {
+  padding: 8px 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  padding-left: 24px;
+  position: relative;
+}
+
+.info-box li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--success-color);
+  font-weight: bold;
+}
+
+.tip {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--ml-yellow);
+  margin-top: var(--spacing-sm);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   RODAPÉ
+   ============================================ */
+.footer {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+@media (max-width: 768px) {
+  body {
+    padding: var(--spacing-sm);
+  }
+
+  .card {
+    padding: var(--spacing-md);
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  input[type="text"],
+  .btn-primary {
+    font-size: 1rem;
+  }
+
+  .info-box {
+    padding: var(--spacing-sm);
+  }
+
+  .info-box li {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.3rem;
+  }
+
+  .btn-primary {
+    padding: 14px 20px;
+  }
+}
+
+/* ============================================
+   ANIMAÇÕES EXTRAS
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
