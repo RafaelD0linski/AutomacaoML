@@ -6,14 +6,13 @@ import requests
 import re
 from typing import Optional
 import logging
+from urllib.parse import unquote
 
-# Configurar logging para debug
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Abridor de Produtos Mercado Livre")
 
-# Configurar templates e arquivos estáticos
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -21,105 +20,93 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 def extrair_mlb_id(url: str) -> Optional[str]:
     """
     Extrai o ID MLB de qualquer URL do Mercado Livre.
-    Suporta múltiplos formatos de URL.
     """
-    # Tentar diferentes padrões de regex
+    # Decodificar URL primeiro (para links com %2F, etc)
+    url = unquote(url)
+    
+    # Padrões de regex
     padroes = [
-        r'MLB-?(\d{8,12})',  # MLB1234567890 ou MLB-1234567890
-        r'/p/MLB(\d{8,12})',  # mercadolivre.com.br/p/MLB123456
-        r'items/MLB(\d{8,12})',  # API URLs
-        r'MLB(\d{8,12})',  # Qualquer MLB seguido de números
+        r'MLB-?(\d{8,12})',
+        r'/p/MLB(\d{8,12})',
+        r'items/MLB(\d{8,12})',
+        r'MLB(\d{8,12})',
     ]
     
     for padrao in padroes:
         match = re.search(padrao, url, re.IGNORECASE)
         if match:
             mlb_id = f"MLB{match.group(1)}"
-            logger.info(f"ID extraído: {mlb_id} usando padrão: {padrao}")
+            logger.info(f"✅ ID extraído: {mlb_id}")
             return mlb_id
     
-    logger.warning(f"Nenhum ID encontrado na URL: {url}")
+    logger.warning(f"❌ Nenhum ID encontrado")
     return None
+
+
+def construir_url_produto(mlb_id: str) -> str:
+    """
+    Constrói a URL do produto diretamente do ID MLB.
+    Não depende da API!
+    """
+    # Formato padrão das URLs do Mercado Livre
+    # produto.mercadolivre.com.br/MLB-{id}-{slug-qualquer}
+    # O slug não importa, o ID é suficiente!
+    url = f"https://produto.mercadolivre.com.br/{mlb_id}-produto"
+    logger.info(f"🔗 URL construída: {url}")
+    return url
+
+
+def verificar_produto_existe(mlb_id: str) -> bool:
+    """
+    Verifica se o produto existe fazendo uma requisição HEAD.
+    Mais rápido e econômico que GET.
+    """
+    try:
+        url = construir_url_produto(mlb_id)
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'pt-BR,pt;q=0.9',
+        }
+        
+        # HEAD é mais leve que GET
+        response = requests.head(url, headers=headers, timeout=10, allow_redirects=True)
+        
+        # Se retornar 200, produto existe
+        # Se retornar 404, produto não existe
+        existe = response.status_code == 200
+        
+        logger.info(f"{'✅' if existe else '❌'} Status: {response.status_code}")
+        return existe
+        
+    except Exception as e:
+        logger.error(f"Erro ao verificar produto: {e}")
+        # Em caso de erro, assumir que existe e deixar o ML lidar
+        return True
 
 
 def resolver_link_real(link: str) -> str:
     """
-    Resolve redirecionamentos e retorna a URL final.
+    Resolve redirecionamentos de links encurtados.
     """
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         }
         
-        logger.info(f"Resolvendo link: {link}")
-        response = requests.get(
-            link,
-            allow_redirects=True,
-            timeout=15,
-            headers=headers
-        )
+        response = requests.get(link, allow_redirects=True, timeout=10, headers=headers)
+        return response.url
         
-        url_final = response.url
-        logger.info(f"URL resolvida: {url_final}")
-        return url_final
-        
-    except requests.RequestException as e:
-        logger.error(f"Erro ao resolver link: {e}")
+    except:
         return link
-
-
-def obter_permalink_produto(mlb_id: str) -> Optional[dict]:
-    """
-    Consulta a API oficial do Mercado Livre.
-    Retorna um dict com 'permalink' e 'title' ou None.
-    """
-    try:
-        # Endpoint da API do Mercado Livre
-        api_url = f"https://api.mercadolibre.com/items/{mlb_id}"
-        logger.info(f"Consultando API: {api_url}")
-        
-        headers = {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json'
-        }
-        
-        response = requests.get(api_url, timeout=10, headers=headers)
-        logger.info(f"Status da API: {response.status_code}")
-        
-        if response.status_code == 200:
-            dados = response.json()
-            permalink = dados.get('permalink')
-            title = dados.get('title', 'Produto')
-            
-            logger.info(f"Produto encontrado: {title}")
-            logger.info(f"Permalink: {permalink}")
-            
-            return {
-                'permalink': permalink,
-                'title': title,
-                'id': mlb_id
-            }
-            
-        elif response.status_code == 404:
-            logger.warning(f"Produto {mlb_id} não encontrado (404)")
-            return None
-            
-        else:
-            logger.error(f"Erro na API: Status {response.status_code}")
-            logger.error(f"Resposta: {response.text[:200]}")
-            return None
-            
-    except requests.RequestException as e:
-        logger.error(f"Erro ao consultar API: {e}")
-        return None
 
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request, erro: Optional[str] = None):
     """
-    Rota principal que exibe o formulário HTML.
+    Página inicial com formulário.
     """
     return templates.TemplateResponse(
         "index.html",
@@ -130,14 +117,13 @@ async def home(request: Request, erro: Optional[str] = None):
 @app.post("/abrir")
 async def abrir_produto(request: Request, link_produto: str = Form(...)):
     """
-    Rota que processa o link do produto e redireciona para a página real.
+    Processa o link e redireciona para o produto.
+    NOVA ABORDAGEM: Não usa API do ML!
     """
     
-    # Limpar o link
     link_produto = link_produto.strip()
     logger.info(f"\n{'='*60}")
-    logger.info(f"Nova requisição recebida")
-    logger.info(f"Link original: {link_produto}")
+    logger.info(f"📥 Link recebido: {link_produto}")
     
     if not link_produto:
         return templates.TemplateResponse(
@@ -145,100 +131,86 @@ async def abrir_produto(request: Request, link_produto: str = Form(...)):
             {"request": request, "erro": "❌ Por favor, cole um link válido."}
         )
     
-    # Tentar extrair ID diretamente do link fornecido primeiro
+    # Extrair ID diretamente
     mlb_id = extrair_mlb_id(link_produto)
     
     # Se não encontrou, tentar resolver redirecionamentos
     if not mlb_id:
-        logger.info("ID não encontrado no link original, resolvendo redirecionamentos...")
+        logger.info("🔄 Tentando resolver redirecionamentos...")
         try:
             link_resolvido = resolver_link_real(link_produto)
             mlb_id = extrair_mlb_id(link_resolvido)
-        except Exception as e:
-            logger.error(f"Erro ao resolver redirecionamentos: {e}")
+        except:
+            pass
     
-    # Se ainda não encontrou o ID
     if not mlb_id:
-        logger.error("Falha ao extrair ID MLB")
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request, 
-                "erro": "❌ Link inválido. Não foi possível identificar o código do produto (MLB)."
+                "erro": "❌ Link inválido. Não foi possível identificar o código MLB do produto."
             }
         )
     
-    # Consultar API do Mercado Livre
-    logger.info(f"Consultando produto {mlb_id} na API...")
-    resultado = obter_permalink_produto(mlb_id)
+    # Construir URL diretamente (sem usar API!)
+    url_produto = construir_url_produto(mlb_id)
     
-    if not resultado or not resultado.get('permalink'):
-        logger.error(f"Produto {mlb_id} não encontrado na API")
+    # Verificar se produto existe (opcional, mas recomendado)
+    logger.info("🔍 Verificando se produto existe...")
+    existe = verificar_produto_existe(mlb_id)
+    
+    if not existe:
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request, 
-                "erro": f"⚠️ Produto {mlb_id} não encontrado ou indisponível."
+                "erro": f"⚠️ Produto {mlb_id} não encontrado ou foi removido."
             }
         )
     
-    # Sucesso! Redirecionar para o produto
-    permalink = resultado['permalink']
-    logger.info(f"✅ Redirecionando para: {permalink}")
+    # Redirecionar!
+    logger.info(f"✅ Redirecionando para: {url_produto}")
     logger.info(f"{'='*60}\n")
     
-    return RedirectResponse(url=permalink, status_code=303)
+    return RedirectResponse(url=url_produto, status_code=303)
 
 
 @app.get("/testar/{mlb_id}")
 async def testar_produto(mlb_id: str):
     """
-    Endpoint de teste para verificar se um produto existe.
-    Acesse: http://127.0.0.1:8000/testar/MLB19444510
+    Endpoint de teste.
     """
-    resultado = obter_permalink_produto(mlb_id)
+    url = construir_url_produto(mlb_id)
+    existe = verificar_produto_existe(mlb_id)
     
-    if resultado:
-        return {
-            "sucesso": True,
-            "produto": resultado
-        }
-    else:
-        return {
-            "sucesso": False,
-            "mensagem": f"Produto {mlb_id} não encontrado"
-        }
+    return {
+        "mlb_id": mlb_id,
+        "url": url,
+        "existe": existe,
+        "mensagem": "Produto encontrado!" if existe else "Produto não encontrado"
+    }
 
 
 @app.get("/debug")
-async def debug_info():
+async def debug():
     """
-    Endpoint para verificar se a aplicação está funcionando.
-    Acesse: http://127.0.0.1:8000/debug
+    Teste rápido do sistema.
     """
-    # Testar alguns produtos conhecidos
-    produtos_teste = ["MLB3826970145", "MLB1000", "MLB19444510"]
-    resultados = []
-    
-    for mlb_id in produtos_teste:
-        resultado = obter_permalink_produto(mlb_id)
-        resultados.append({
-            "id": mlb_id,
-            "existe": resultado is not None,
-            "dados": resultado if resultado else "Não encontrado"
-        })
-    
     return {
-        "status": "ok",
-        "mensagem": "Aplicação funcionando",
-        "testes": resultados
+        "status": "✅ Sistema funcionando!",
+        "versao": "2.0 - Sem dependência da API",
+        "info": "Agora construímos a URL diretamente do ID MLB",
+        "teste": "Acesse /testar/MLB1234567890 para testar um produto"
     }
 
 
 if __name__ == "__main__":
     import uvicorn
-    print("\n🚀 Iniciando servidor...")
+    print("\n" + "="*60)
+    print("🚀 SERVIDOR MERCADO LIVRE - VERSÃO 2.0")
+    print("="*60)
+    print("✨ Nova versão SEM dependência da API")
     print("📍 Acesse: http://127.0.0.1:8000")
     print("🔍 Debug: http://127.0.0.1:8000/debug")
-    print("🧪 Testar produto: http://127.0.0.1:8000/testar/MLB3826970145\n")
+    print("="*60 + "\n")
     uvicorn.run(app, host="127.0.0.1", port=8000)
