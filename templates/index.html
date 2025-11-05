@@ -1,125 +1,108 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Abrir Produto Mercado Livre</title>
-    <link rel="stylesheet" href="/static/style.css" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <div class="card">
-        <!-- Cabeçalho -->
-        <div class="header">
-          <h1>🔗 Abrir Produto do Mercado Livre</h1>
-          <p class="subtitle">
-            Cole qualquer link de produto e acesse a página oficial
-          </p>
-        </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Link de Afiliado ML</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #00a650, #007bff);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      width: 95%;
+      max-width: 500px;
+      text-align: center;
+    }
+    h2 {
+      color: #007bff;
+      margin-bottom: 15px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #00a650;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin-top: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #009245;
+    }
+    .result {
+      margin-top: 15px;
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 8px;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔗 Gerador de Link de Afiliado (Mercado Livre)</h2>
+    <textarea id="texto" rows="4" placeholder="Cole o link do produto e opcionalmente adicione uma descrição..."></textarea>
+    <button onclick="gerarLink()">Gerar Link</button>
+    <div id="resultado" class="result"></div>
+    <button id="btnWpp" style="display:none;" onclick="abrirWhatsApp()">📲 Enviar no WhatsApp</button>
+  </div>
 
-        <!-- Formulário -->
-        <form method="POST" action="/abrir">
-          <div class="form-group">
-            <input
-              type="text"
-              name="link_produto"
-              placeholder="Cole o link do produto aqui..."
-              required
-              autofocus
-            />
-          </div>
+  <script>
+    let linkAfiliado = "";
 
-          <button type="submit" class="btn-primary">
-            <span>Abrir Produto</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-              ></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </button>
-        </form>
-
-        <!-- Mensagem de erro (se houver) -->
-        {% if erro %}
-        <div class="alert alert-error">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <span>{{ erro }}</span>
-        </div>
-        {% endif %}
-
-        <!-- Informações adicionais -->
-        <div class="info-box">
-          <h3>📌 Tipos de links aceitos:</h3>
-          <ul>
-            <li>
-              <strong>Links diretos:</strong>
-              produto.mercadolivre.com.br/MLB-xxxxx...
-            </li>
-            <li>
-              <strong>Links curtos:</strong> mercadolivre.com.br/p/MLB123456
-            </li>
-            <li>
-              <strong>Links encurtados:</strong> mercadolivre.com/sec/xxxxx...
-            </li>
-            <li>
-              <strong>Links afiliados:</strong> qualquer link com
-              redirecionamento
-            </li>
-          </ul>
-
-          <div class="tip">
-            💡 <strong>Dica:</strong> O sistema resolve automaticamente qualquer
-            tipo de link e abre a página oficial do produto.
-          </div>
-        </div>
-
-        <!-- Rodapé -->
-        <div class="footer">
-          <p>Desenvolvido com Python + FastAPI</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Script para limpar mensagem de erro ao digitar -->
-    <script>
-      const input = document.querySelector('input[name="link_produto"]');
-      const alert = document.querySelector(".alert");
-
-      if (input && alert) {
-        input.addEventListener("input", function () {
-          alert.style.display = "none";
-        });
+    function gerarLink() {
+      const texto = document.getElementById("texto").value.trim();
+      if (!texto) {
+        alert("Cole o link do produto primeiro!");
+        return;
       }
-    </script>
-  </body>
+
+      // Captura o link do produto Mercado Livre
+      const regex = /(https?:\/\/[^\s]+)/g;
+      const links = texto.match(regex);
+      if (!links || links.length === 0) {
+        alert("Nenhum link válido encontrado.");
+        return;
+      }
+
+      const linkOriginal = links[0];
+      const linkAfiliadoFinal = linkOriginal.includes("?")
+        ? linkOriginal + "&matt_tool=MLA&campid=rafael_dolinski"
+        : linkOriginal + "?matt_tool=MLA&campid=rafael_dolinski";
+
+      // Substitui o link original pelo afiliado
+      const mensagemFinal = texto.replace(linkOriginal, linkAfiliadoFinal);
+
+      document.getElementById("resultado").innerHTML =
+        `<b>Link gerado:</b><br>${mensagemFinal}`;
+      document.getElementById("btnWpp").style.display = "block";
+      linkAfiliado = mensagemFinal;
+    }
+
+    function abrirWhatsApp() {
+      const textoCodificado = encodeURIComponent(linkAfiliado);
+      const url = `https://wa.me/?text=${textoCodificado}`;
+      window.open(url, "_blank");
+    }
+  </script>
+</body>
 </html>
