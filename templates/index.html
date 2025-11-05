@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Link de Afiliado ML</title>
+  <title>Afiliado ML - Link + WhatsApp</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -23,11 +23,7 @@
       max-width: 500px;
       text-align: center;
     }
-    h2 {
-      color: #007bff;
-      margin-bottom: 15px;
-    }
-    textarea, input {
+    textarea {
       width: 100%;
       padding: 10px;
       border-radius: 8px;
@@ -48,35 +44,23 @@
     button:hover {
       background-color: #009245;
     }
-    .result {
-      margin-top: 15px;
-      background: #f5f5f5;
-      padding: 10px;
-      border-radius: 8px;
-      word-wrap: break-word;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>🔗 Gerador de Link de Afiliado (Mercado Livre)</h2>
-    <textarea id="texto" rows="4" placeholder="Cole o link do produto e opcionalmente adicione uma descrição..."></textarea>
-    <button onclick="gerarLink()">Gerar Link</button>
-    <div id="resultado" class="result"></div>
-    <button id="btnWpp" style="display:none;" onclick="abrirWhatsApp()">📲 Enviar no WhatsApp</button>
+    <h2>🔗 Gerador Automático ML + WhatsApp</h2>
+    <textarea id="texto" rows="4" placeholder="Cole o link do produto (e uma descrição opcional)..."></textarea>
+    <button onclick="gerarEEnviar()">Gerar e Enviar no WhatsApp</button>
   </div>
 
   <script>
-    let linkAfiliado = "";
-
-    function gerarLink() {
+    function gerarEEnviar() {
       const texto = document.getElementById("texto").value.trim();
       if (!texto) {
         alert("Cole o link do produto primeiro!");
         return;
       }
 
-      // Captura o link do produto Mercado Livre
       const regex = /(https?:\/\/[^\s]+)/g;
       const links = texto.match(regex);
       if (!links || links.length === 0) {
@@ -85,21 +69,16 @@
       }
 
       const linkOriginal = links[0];
-      const linkAfiliadoFinal = linkOriginal.includes("?")
-        ? linkOriginal + "&matt_tool=MLA&campid=rafael_dolinski"
-        : linkOriginal + "?matt_tool=MLA&campid=rafael_dolinski";
 
-      // Substitui o link original pelo afiliado
-      const mensagemFinal = texto.replace(linkOriginal, linkAfiliadoFinal);
+      // Cria um redirecionador "seu" (simulando o clique afiliado)
+      // Ele aponta para o seu perfil de afiliado e leva ao produto
+      const linkAfiliado = `https://www.mercadolivre.com.br/social/rafael_dolinski?redirect=${encodeURIComponent(linkOriginal)}`;
 
-      document.getElementById("resultado").innerHTML =
-        `<b>Link gerado:</b><br>${mensagemFinal}`;
-      document.getElementById("btnWpp").style.display = "block";
-      linkAfiliado = mensagemFinal;
-    }
+      // Mensagem final
+      const mensagemFinal = texto.replace(linkOriginal, linkAfiliado);
+      const textoCodificado = encodeURIComponent(mensagemFinal);
 
-    function abrirWhatsApp() {
-      const textoCodificado = encodeURIComponent(linkAfiliado);
+      // Abre WhatsApp automaticamente
       const url = `https://wa.me/?text=${textoCodificado}`;
       window.open(url, "_blank");
     }
